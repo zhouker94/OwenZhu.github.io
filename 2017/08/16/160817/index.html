@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
+    <title>
+        
+        Social-ecological system in multi-agent environment through deep reinforcement learning · OwenZhu&#39;s Blog
+        
+    </title>
+    <link rel="icon" href= /assets/favicon.ico>
+    <!-- TODO: 在font-face加载完毕后改变字体  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/webfont/1.6.28/webfontloader.js"></script>
+    <!-- 提前加载place holder  -->
+    <style type="text/css">
+        @font-face {
+            font-family: 'Oswald-Regular';
+            src: url(/font/Oswald-Regular.ttf);
+        }
+    </style>
+    <style type="text/css">
+        .site-intro {
+            position: relative;
+            width: 100%;
+            height: 50vh;
+            overflow: hidden;
+            box-shadow: -0.1rem 0 0.5rem 0 rgba(0, 0, 0, 0.5);
+        }
+        .site-intro-placeholder {
+            position: absolute;
+            z-index: -2;
+            top: 0;
+            left: 0px;
+            width: calc(100% + 300px);
+            height: 100%;
+            background: repeating-linear-gradient(-45deg, #444 0, #444 80px, #333 80px, #333 160px);
+            background-position: center center;
+            transform: translate3d(-226px, 0, 0);
+            animation: gradient-move 2.5s ease-out 0s 1;
+        }
+        @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+</style>
+    <link rel="stylesheet" href = /css/style.css?v=20171227 />
+    <script src="//cdn.staticfile.org/jquery/3.2.1/jquery.min.js" defer></script>
+    
+    <script src="/scripts/main.js" defer></script>
+    <!-- 百度统计  -->
+    
+    <!-- 谷歌统计  --><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+    
+</head>
+
+    
+        <body class="post-body">
+    
+    
+<!-- hexo-inject:begin --><!-- hexo-inject:end --><header class="header">
+
+    <div class="read-progress"></div>
+    <div class="header-sidebar-menu">&#xe775;</div>
+    <!-- post页的toggle banner  -->
+    
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/" >OwenZhu&#39;s Blog</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">Social-ecological system in multi-agent environment through deep reinforcement learning</a>
+            </div>
+    </div>
+    
+    <a class="home-link" href=/>OwenZhu's Blog</a>
+</header>
+    <div class="wrapper">
+        <div class="site-intro">
+    
+    <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
+            
+    <div class="site-intro-img" style="background-image: url(http://oumn0o088.bkt.clouddn.com/post-bg.jpg)"></div>
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+            
+            Social-ecological system in multi-agent environment through deep reinforcemen...
+            <!-- 404 -->
+            
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            
+            
+            <!-- 404 -->
+            
+        </p>
+        <!-- 文章页meta -->
+        
+            <!-- 文章页标签  -->
+            
+            <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
+            <div class="post-intro-meta">
+                <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                <span class="post-intro-time">2017/08/16</span>
+                <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                    <span class="iconfont-archer">&#xe604;</span>
+                    <span id="busuanzi_value_page_pv"></span>
+                </span>
+                <span class="shareWrapper">
+                    <span class="iconfont-archer shareIcon">
+                        &#xe601;
+                    </span>
+                    <span class="bdsharebuttonbox">
+                        <a href="#" class="bds_more shareText" data-cmd="more">Share</a>
+                    </span>
+                </span>
+            </div>
+        
+    </div>
+</div>
+        <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" />
+        <script>
+            var browser = {
+                    versions: function () {
+                        var u = window.navigator.userAgent;
+                        return {
+                            userAgent: u,
+                            trident: u.indexOf('Trident') > -1, //IE内核
+                            presto: u.indexOf('Presto') > -1, //opera内核
+                            webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+                            gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+                            mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+                            ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+                            android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+                            iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+                            iPad: u.indexOf('iPad') > -1, //是否为iPad
+                            webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+                            weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+                            uc: u.indexOf('UCBrowser') > -1 //是否为android下的UC浏览器
+                        };
+                    }()
+                }
+
+            function fontLoaded(){
+                console.log('font loaded');
+                if (document.getElementsByClassName('site-intro-meta')) {
+                    document.getElementsByClassName('intro-title')[0].classList.add('intro-fade-in');
+                    document.getElementsByClassName('intro-subtitle')[0].classList.add('intro-fade-in');
+                    var postIntroTags = document.getElementsByClassName('post-intro-tags')[0],
+                        postIntroMeat = document.getElementsByClassName('post-intro-meta')[0];
+                        if (postIntroTags) {
+                            postIntroTags.classList.add('post-fade-in');
+                        }
+                        if (postIntroMeat) {
+                            postIntroMeat.classList.add('post-fade-in');
+                        }
+                    }
+                }
+                
+            console.log("userAgent:" + browser.versions.userAgent);
+            // UC不支持跨域，所以直接显示
+            if (browser.versions.uc) {
+                console.log("UCBrowser");
+                fontLoaded();
+            } else {
+                WebFont.load({
+                    custom: {
+                        families: ['Oswald-Regular']
+                    },
+                    loading: function () {  //所有字体开始加载
+                        // console.log('loading');
+                    },
+                    active: function () {  //所有字体已渲染
+                        fontLoaded();
+                    },
+                    inactive: function () { //字体预加载失败，无效字体或浏览器不支持加载
+                        console.log('inactive: timeout');
+                        fontLoaded();
+                    },
+                    timeout: 7000 // Set the timeout to two seconds
+                });
+            }
+        </script>
+        <div class="container container-unloaded">
+            <main class="main post-page">
+    <article class="article-entry">
+        <h1 id="Social-ecological-system-in-multi-agent-environment-through-deep-reinforcement-learning"><a href="#Social-ecological-system-in-multi-agent-environment-through-deep-reinforcement-learning" class="headerlink" title="Social-ecological system in multi-agent environment through deep reinforcement learning"></a>Social-ecological system in multi-agent environment through deep reinforcement learning</h1><h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>There are series of urgent global challenges nowadays, which are caused by the overexploitation of common resources, such as overexploitation of groundwater, petroleum, and mine. Due to those issues above, the resources on the earth may be depleted in a high speed.</p>
+<p>To address these, people try to find the optimal policy to avoid overexploitation. Classic game theory holds a wildly acceptive assumption that individual is rational and self-interested, so they will maximise their own profits thus regardless of the whole population. Learning in social-ecological systems — allows people gaining a better understanding of resource management. However, in a cooperative dilemma (prisoner dilemma) people found that multiple self-interested agents can hardly find the global social-ecological solution, e.g. common resource pool. (Perolat et al., 2017). </p>
+<p>As Rand and Nowak say (2013), natural selection always prefers defection. Therefore, the situation that most agents choose do not cooperate may eventually cause the famous pessimistic social dilemma — tragedy of the commons. However, altruistic behaviors are occasionally occurring in our life, and sometimes exploitation of common resource has been controlled at a sustainable level. The simple classic game model, therefore, cannot give more explanations of the phenomenon that we observed in reality. Since we need much more complex models in simulation. As Battersby (2017) says, “We just need to change the game.” (p. 8)</p>
+<p>Many researchers have invested a large amount of efforts in game theory, in order to find the optimal solution for the individuals and population. They have developed a variety of strategies to apply in social-ecological systems. Afterwards, various frameworks and mechanisms have come out in order to extend the expression ability of their system. In this case, Rezaei and Kirley (2012) introduce a social network based model in the N-player Prisoner’s Dilemma game; Rand and Nowak (2013) discuss five mechanisms of the evolution of cooperation; Hauser et al. (2014) devise a new kind of paradigm – ‘Intergenerational Goods Game’; Osten, Kirley and Miller (2017) present a model of dynamic common resource pool which combines profitability with sustainability goals; Leibo et al. (2017) propose a sequential social dilemma to address the dynamic policies problem.</p>
+<h2 id="Key-problem"><a href="#Key-problem" class="headerlink" title="Key problem"></a>Key problem</h2><p>From a biological point of view, a different approach - “evolutionary game theory” has been proposed. Traulsen and Hauert (2009) describe two aspects of evolutionary game theory: the strategies encoded by the genome and cultural evolution. The concepts of evolutionary game theory can help us have a better understanding to build social-ecological system based on multi-participants.</p>
+<p>An interesting observation is that when exploitation decisions are made by individuals respectively, the common resource tends to be easily exhausted. By contrast, if the decisions are made by all participants democratically, the over-exploiting problem is much easier to solve (Hauser, Rand, Peysakhovich, &amp; Nowak, 2014). Moreover, Taylor et al. (2014) point out it is important for us to develop cooperative strategies in multi-agents based game. Only most of the agents working cooperatively, the appropriation behaviour taken by a single agent can be effectively prevented.</p>
+<p>Now, the key problem is how a self-interested agent can learn from the environment to cooperate rather than defect? What is the best strategy to maximise overall returns in the long run? Since we cannot use the traditional classic game theory to predict agent behaviour without cooperation, there is a variety of methods to approach the cooperative social dilemma.</p>
+<h2 id="Key-methods"><a href="#Key-methods" class="headerlink" title="Key methods"></a>Key methods</h2><p>There are two main learning techniques widely applied to find a solution of social dilemma: social learning and reinforcement learning.</p>
+<ul>
+<li>Social learning (or imitation learning)</li>
+</ul>
+<p>The key idea of social learning is that an individual can imitate or directly copy some successful behaviours from other individuals. Chatterjee, Zufferey and Nowak (2012) propose a framework which is based on social learning. They imply single agent can learn strategies from other agents who are successful. Moreover, they explore the situation that the individual has different learning abilities. No surprised, the outcomes of self-learning are variant from individual to individual. Then they add the noisy with a small possibility to present the learning mistakes. All of these efforts are made the learning progress much and much more convincible and reliable. From their work, they test the first mechanism – direct reciprocity, and the outcomes show that all of agent’s policies will still nearly converge to an optimal policy, while oscillations occur.</p>
+<ul>
+<li>Reinforcement learning</li>
+</ul>
+<p>Another approach is using reinforcement learning approaches. A reinforcement learning based agent can learn from their own or someone else’s experience, to improve their policy. Using this mechanism, agents can learn autonomously to solve some problem, especially in Markov decision progress. Since reinforcement learning is value-based approach, researchers try to combine reinforcement learning with deep learning in order to approximate any complex value functions. The outcomes show that deep reinforcement learning approaches perform much better than any other learning methods. For instance, Taylor et al. (2014) propose a framework based on agents advising agents in complex video games: StarCraft and Pac-Man. They highlight the great performance of the RL agents in learning control policies.</p>
+<p>Perolat et al. (2017) apply deep reinforcement learning in common resource pool game, and achieve a satisfying outcome: agents finally have learned different strategies to cooperate with each other after training. Additionally, they observed that only tracking the log of rewards during the experiment is far from enough. To detect the emergent events during the training process, they bring forward the “social outcome metrics” which are consisted of the evaluation of efficiency, equality, sustainability, and peace.</p>
+<p>Another study taken by Leibo et al. (2017) concentrate on the policies which are applied with cooperativeness. They point out that besides learning the game strategies, agents also need to learn the policies dynamically. The outcomes are quite different in different models. In the game “Gathering”, agents tend to cooperate rather than defect; however, agents are much easier to cooperate in another game “Wolfpack”, just because of the change in the environment in games.</p>
+<p>Furthermore, Osten, Kirley and Miller (2017) implement reinforcement learning method with Q- Learning to guide the decision strategies in stochastic common resource pool system; Tampuu et al. (2017) introduce deep reinforcement learning to play video game “Pong”, illustrating how cooperation or competition strategies can be learned.</p>
+<h2 id="Evaluation"><a href="#Evaluation" class="headerlink" title="Evaluation"></a>Evaluation</h2><p>Above all, many methods have been put forward to address real-world social dilemma. These have made progression on the specific model. In the absence of one general strategy which can apply to all these situations, more study is needed to fill the vacancy. Obviously, the current studies are still at the very beginning stage and finding a general learning method truly a tough task – even the mankind can hardly find the optimum solution in these social real-world dilemmas. </p>
+<p>Now we have discussed two kinds of popular learning approaches: social learning (or imitation learning) and reinforcement learning. These two address different issues, but they are a little bit similar. Researchers used to apply social learning widely to explore a series of social real-world dilemma and achieve in many models. However, Osten, Kirley and Miller (2017) argue that evolutionary game theory and the social learning method may not be effective in some stochastic models because of its slow convergence, which has already been discussed above. While evolutionary game theory and social learning apply well in many real-world issues, reinforcement learning may be more suitable to solve Markov decision problems, which include the most of social dilemma models.</p>
+<p>Although reinforcement learning performs well in many AI learning tasks, there is still much room to improve. For instance, these two companies, DeepMind and Blizzard, recently declared that they have developed the reinforcement learning environment SC2LE, which is based on the famous real-time strategy game StarCraft II. The former training way of reinforcement learning or deep reinforcement learning method becomes invalid in the new experiment environment (Vinyals et al., 2017). However, they also admit that this mechanism only works in mini-games. When it applies to main game of StarCraft II, the agents can hardly make any progress. Not only the partial information but also the complexity of the space of state cause the difficulties in such complicated strategy game. One of possible solutions they gave is dividing the main game into multiple mini-games, and solve them respectively by reinforcement learning method. However, there is another possibility that a new reinforcement learning method comes out which is powerful to find the optimum solution.</p>
+<p>In conclusion, large quantities of studies show that deep reinforcement learning performs much better than any other traditional learning methods. Especially in multi-agent environment, most agents can learn some cooperative strategies. Nevertheless, when we place our agents in much more complicated environment they encounter the bottleneck. The future work should concentrate on learning from complex and high interactive environment. Reinforcement learning method  seems like one possible key of entering the era of artificial general intelligence.</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li>Battersby, S. (2017). News Feature: Can humankind escape the tragedy of the commons? Proceedings of the National Academy of Sciences, 114(1), 7–10. <a href="https://doi.org/10.1073/pnas.1619877114" target="_blank" rel="noopener">https://doi.org/10.1073/pnas.1619877114</a></li>
+<li>Chatterjee, K., Zufferey, D., &amp; Nowak, M. A. (2012). Evolutionary game dynamics in populations with different learners. Journal of Theoretical Biology, 301, 161–173.</li>
+<li>Hauser, O. P., Rand, D. G., Peysakhovich, A., &amp; Nowak, M. A. (2014). Cooperating with the future. Nature, 511(7508), 220–223. <a href="https://doi.org/10.1038/nature13530" target="_blank" rel="noopener">https://doi.org/10.1038/nature13530</a></li>
+<li>Leibo, J. Z., Zambaldi, V., Lanctot, M., Marecki, J., &amp; Graepel, T. (2017). Multi-agent Reinforcement Learning in Sequential Social Dilemmas. ArXiv:1702.03037 [Cs]. Retrieved from <a href="http://arxiv.org/abs/1702.03037" target="_blank" rel="noopener">http://arxiv.org/abs/1702.03037</a></li>
+<li>Osten, F. B. von der, Kirley, M., &amp; Miller, T. (2017). Sustainability is possible despite greed - Exploring the nexus between profitability and sustainability in common pool resource systems. Scientific Reports, 7. <a href="https://doi.org/10.1038/s41598-017-02151-y" target="_blank" rel="noopener">https://doi.org/10.1038/s41598-017-02151-y</a></li>
+<li>Perolat, J., Leibo, J. Z., Zambaldi, V., Beattie, C., Tuyls, K., &amp; Graepel, T. (2017). A multi-agent reinforcement learning model of common-pool resource appropriation. ArXiv:1707.06600 [Cs, q-Bio]. Retrieved from <a href="http://arxiv.org/abs/1707.06600" target="_blank" rel="noopener">http://arxiv.org/abs/1707.06600</a></li>
+<li>Rand, D. G., &amp; Nowak, M. A. (2013). Human cooperation. Trends in Cognitive Sciences, 17(8), 413–425. <a href="https://doi.org/10.1016/j.tics.2013.06.003" target="_blank" rel="noopener">https://doi.org/10.1016/j.tics.2013.06.003</a></li>
+<li>Rezaei, G., &amp; Kirley, M. (2012). Dynamic social networks facilitate cooperation in the N-player Prisoner’s Dilemma. Physica A: Statistical Mechanics and Its Applications, 391(23), 6199–6211. <a href="https://doi.org/10.1016/j.physa.2012.06.071" target="_blank" rel="noopener">https://doi.org/10.1016/j.physa.2012.06.071</a></li>
+<li>Taylor, M. E., Carboni, N., Fachantidis, A., Vlahavas, I., &amp; Torrey, L. (2014). Reinforcement learning agents providing advice in complex video games. Connection Science, 26(1), 45–63. <a href="https://doi.org/10.1080/09540091.2014.885279" target="_blank" rel="noopener">https://doi.org/10.1080/09540091.2014.885279</a></li>
+<li>Traulsen, A., &amp; Hauert, C. (2009). Stochastic evolutionary game dynamics. Reviews of Nonlinear Dynamics and Complexity, 2, 25–61.</li>
+<li>Vinyals, O., Ewalds, T., Bartunov, S., Georgiev, P., Vezhnevets, A. S., Yeo, M., … others. (n.d.). StarCraft II: A New Challenge for Reinforcement Learning. Retrieved from <a href="https://deepmind.com/documents/110/sc2le.pdf" target="_blank" rel="noopener">https://deepmind.com/documents/110/sc2le.pdf</a></li>
+</ul>
+
+    </article>
+    <!-- 前后页  -->
+    <ul class="post-pager">
+        
+            <li class="next">
+                <a href= "/2017/09/17/290917/" title= TensorFlow Agents：基于TensorFlow的高效批处理增强学习 >
+                    <span>Next Post</span>
+                    <span>TensorFlow Agents：基于TensorFlow的高效批处理增强学习</span>
+                </a>
+            </li>
+        
+        
+    </ul>
+    <!-- 评论插件 -->
+    <!-- 来必力City版安装代码 -->
+
+    <div id="lv-container" data-id="city" data-uid= MTAyMC8zODQyMC8xNDk0OA==>
+        <script type="text/javascript">
+            (function (d, s) {
+                var j, e = d.getElementsByTagName(s)[0];
+                if (typeof LivereTower === 'function') { return; }
+                j = d.createElement(s);
+                j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                j.async = true;
+
+                e.parentNode.insertBefore(j, e);
+            })(document, 'script');
+        </script>
+        <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    </div>
+
+<!-- City版安装代码已完成 -->
+    
+    
+    <!--PC版-->
+
+    <!--PC版-->
+
+
+    
+    <!-- 评论 -->
+</main>
+            <!-- profile -->
+            
+        </div>
+        <footer class="footer footer-unloaded">
+    <!-- social  -->
+    
+    <div class="social">
+        
+    
+        
+            
+                <a href="mailto:hanweiz@student.unimelb.edu.au" class="iconfont-archer email" title=email ></a>
+            
+        
+    
+        
+            
+                <a href="https://github.com/OwenZhu" class="iconfont-archer github" target="_blank" title="github"></a>
+            
+        
+    
+        
+    
+        
+            
+                <a href="/atom.xml" class="iconfont-archer rss" target="_blank" title="rss"></a>
+            
+        
+    
+
+    </div>
+    
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">Theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">archer</a></span>
+    </div>
+    <!-- 不蒜子  -->
+    
+    <div class="busuanzi-container">
+        <span id="busuanzi_container_site_pv">VISITOR VOLUME: <span id="busuanzi_value_site_pv"></span>
+        </span>
+    </div>
+    
+</footer>
+    </div>
+    <!-- toc -->
+    
+    <div class="toc-wrapper">
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Social-ecological-system-in-multi-agent-environment-through-deep-reinforcement-learning"><span class="toc-number">1.</span> <span class="toc-text">Social-ecological system in multi-agent environment through deep reinforcement learning</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Introduction"><span class="toc-number">1.1.</span> <span class="toc-text">Introduction</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Key-problem"><span class="toc-number">1.2.</span> <span class="toc-text">Key problem</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Key-methods"><span class="toc-number">1.3.</span> <span class="toc-text">Key methods</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Evaluation"><span class="toc-number">1.4.</span> <span class="toc-text">Evaluation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-number">1.5.</span> <span class="toc-text">Reference</span></a></li></ol></li></ol>
+    </div>
+    
+    <div class="back-top">&#xe639;</div>
+    <div class="sidebar">
+    <div class="sidebar-header sidebar-header-show-archive">
+        <div class="sidebar-category">
+            <span class="sidebar-archive-link"><span class="iconfont-archer">&#xe67d;</span>Archive</span>
+            <span class="sidebar-tags-link"><span class="iconfont-archer">&#xe610;</span>Tag</span>
+        </div>
+    </div>
+    <div class="sidebar-content sidebar-content-show-archive">
+          <div class="sidebar-archive">
+    <!-- 在ejs中将archive按照时间排序 -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 10 </div>
+    
+    <div class="post-archive">
+    
+    
+    
+    
+    <div class="archive-year"> 2019 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/25</span><a class="archive-post-title" href= "/2019/05/25/250519/" >Tensorflow Serving Source Code Walkthrough</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2018 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/28</span><a class="archive-post-title" href= "/2018/07/28/ELMo_note/" >Note - Deep contextualized word representations</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/29</span><a class="archive-post-title" href= "/2018/05/29/WSTA_L22_machine_translation_phrase/" >WSTA 22 - MACHINE TRANSLATION</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/29</span><a class="archive-post-title" href= "/2018/05/29/WSTA_L20_IR_EVAL_L2R/" >WSTA 20 - EVALUATION AND RE-RANKING</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/29</span><a class="archive-post-title" href= "/2018/05/29/WSTA_L21_machine_translation_word/" >WSTA 21 - MACHINE TRANSLATION WORD BASED MODELS</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">01/19</span><a class="archive-post-title" href= "/2018/01/19/190118/" >Lecture Notes for Reinforcement Learning (MDP)</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2017 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/19</span><a class="archive-post-title" href= "/2017/12/19/291217/" >An Overview inside Distributed Tensorflow Workflow</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/25</span><a class="archive-post-title" href= "/2017/09/25/250917/" >Stochastic evolutionary game dynamics</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/17</span><a class="archive-post-title" href= "/2017/09/17/290917/" >TensorFlow Agents：基于TensorFlow的高效批处理增强学习</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/16</span><a class="archive-post-title" href= "/2017/08/16/160817/" >Social-ecological system in multi-agent environment through deep reinforcement learning</a>
+        </li>
+    
+    </div>
+  </div>
+        <div class="sidebar-tags">
+    <div class="sidebar-tags-name">
+    
+        <span class="sidebar-tag-name"><a href= "#">reinforcement learning</a></span>
+    
+        <span class="sidebar-tag-name"><a href= "#">NLP</a></span>
+    
+    </div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+    缺失模块。<br/>
+    1、请确保node版本大于6.2<br/>
+    2、在博客根目录（注意不是archer根目录）执行以下命令：<br/>
+    <span style="color: #f75357; font-size: 1rem; line-height: 2rem;">npm i hexo-generator-json-content --save</span><br/>
+    3、在根目录_config.yml里添加配置：
+    <pre style="color: #787878; font-size: 0.6rem;">
+jsonContent:
+  meta: false
+  pages: false
+  posts:
+    title: true
+    date: true
+    path: true
+    text: false
+    raw: false
+    content: false
+    slug: false
+    updated: false
+    comments: false
+    link: false
+    permalink: false
+    excerpt: false
+    categories: false
+    tags: true</pre>
+    </div> 
+    <div class="sidebar-tag-list"></div>
+</div>
+    </div>
+</div> 
+    <script>
+    var jsInfo = {
+        root: '/'
+    }
+</script>
+    <!-- 不蒜子  -->
+    
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+    <!-- CNZZ统计  -->
+    
+    </div>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+</body>
+</html>
+
+

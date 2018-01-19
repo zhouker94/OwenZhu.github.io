@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" >
+    <title>
+        
+        An Overview inside Distributed Tensorflow Workflow · OwenZhu&#39;s Blog
+        
+    </title>
+    <link rel="icon" href= /assets/favicon.ico>
+    <!-- TODO: 在font-face加载完毕后改变字体  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/webfont/1.6.28/webfontloader.js"></script>
+    <!-- 提前加载place holder  -->
+    <style type="text/css">
+        @font-face {
+            font-family: 'Oswald-Regular';
+            src: url(/font/Oswald-Regular.ttf);
+        }
+    </style>
+    <style type="text/css">
+        .site-intro {
+            position: relative;
+            width: 100%;
+            height: 50vh;
+            overflow: hidden;
+            box-shadow: -0.1rem 0 0.5rem 0 rgba(0, 0, 0, 0.5);
+        }
+        .site-intro-placeholder {
+            position: absolute;
+            z-index: -2;
+            top: 0;
+            left: 0px;
+            width: calc(100% + 300px);
+            height: 100%;
+            background: repeating-linear-gradient(-45deg, #444 0, #444 80px, #333 80px, #333 160px);
+            background-position: center center;
+            transform: translate3d(-226px, 0, 0);
+            animation: gradient-move 2.5s ease-out 0s 1;
+        }
+        @keyframes gradient-move {
+        0% {
+            transform: translate3d(-226px, 0, 0);
+        }
+        100% {
+            transform: translate3d(0, 0, 0);
+        }
+    }
+</style>
+    <link rel="stylesheet" href = /css/style.css?v=20171227 />
+    <script src="//cdn.staticfile.org/jquery/3.2.1/jquery.min.js" defer></script>
+    
+    <script src="/scripts/main.js" defer></script>
+    <!-- 百度统计  -->
+    
+    <!-- 谷歌统计  --><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+    
+</head>
+
+    
+        <body class="post-body">
+    
+    
+<!-- hexo-inject:begin --><!-- hexo-inject:end --><header class="header">
+
+    <div class="read-progress"></div>
+    <div class="header-sidebar-menu">&#xe775;</div>
+    <!-- post页的toggle banner  -->
+    
+    <div class="banner">
+            <div class="blog-title">
+                <a href="/" >OwenZhu&#39;s Blog</a>
+            </div>
+            <div class="post-title">
+                <a href="#" class="post-name">An Overview inside Distributed Tensorflow Workflow</a>
+            </div>
+    </div>
+    
+    <a class="home-link" href=/>OwenZhu's Blog</a>
+</header>
+    <div class="wrapper">
+        <div class="site-intro">
+    
+    <!-- 主页  -->
+    
+    
+    <!-- 404页  -->
+            
+    <div class="site-intro-img" style="background-image: url(http://oumn0o088.bkt.clouddn.com/post-bg.jpg)"></div>
+    <div class="site-intro-placeholder"></div>
+    <div class="site-intro-meta">
+        <!-- 标题  -->
+        <h1 class="intro-title">
+            <!-- 主页  -->
+            
+            An Overview inside Distributed Tensorflow Workflow
+            <!-- 404 -->
+            
+        </h1>
+        <!-- 副标题 -->
+        <p class="intro-subtitle">
+            <!-- 主页副标题  -->
+            
+            
+            <!-- 404 -->
+            
+        </p>
+        <!-- 文章页meta -->
+        
+            <!-- 文章页标签  -->
+            
+            <script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "2", "bdMiniList": false, "bdPic": "", "bdStyle": "1", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = "/static/api/js/share.js"];</script>
+            <div class="post-intro-meta">
+                <span class="post-intro-calander iconfont-archer">&#xe676;</span>
+                <span class="post-intro-time">2017/12/19</span>
+                <span id="busuanzi_container_page_pv" class="busuanzi-pv">
+                    <span class="iconfont-archer">&#xe604;</span>
+                    <span id="busuanzi_value_page_pv"></span>
+                </span>
+                <span class="shareWrapper">
+                    <span class="iconfont-archer shareIcon">
+                        &#xe601;
+                    </span>
+                    <span class="bdsharebuttonbox">
+                        <a href="#" class="bds_more shareText" data-cmd="more">Share</a>
+                    </span>
+                </span>
+            </div>
+        
+    </div>
+</div>
+        <img class="loading" src="/assets/loading.svg" style="display: block; margin: 6rem auto 0 auto; width: 6rem; height: 6rem;" />
+        <script>
+            var browser = {
+                    versions: function () {
+                        var u = window.navigator.userAgent;
+                        return {
+                            userAgent: u,
+                            trident: u.indexOf('Trident') > -1, //IE内核
+                            presto: u.indexOf('Presto') > -1, //opera内核
+                            webKit: u.indexOf('AppleWebKit') > -1, //苹果、谷歌内核
+                            gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1, //火狐内核
+                            mobile: !!u.match(/AppleWebKit.*Mobile.*/), //是否为移动终端
+                            ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/), //ios终端
+                            android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1, //android终端或者uc浏览器
+                            iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1, //是否为iPhone或者安卓QQ浏览器
+                            iPad: u.indexOf('iPad') > -1, //是否为iPad
+                            webApp: u.indexOf('Safari') == -1, //是否为web应用程序，没有头部与底部
+                            weixin: u.indexOf('MicroMessenger') == -1, //是否为微信浏览器
+                            uc: u.indexOf('UCBrowser') > -1 //是否为android下的UC浏览器
+                        };
+                    }()
+                }
+
+            function fontLoaded(){
+                console.log('font loaded');
+                if (document.getElementsByClassName('site-intro-meta')) {
+                    document.getElementsByClassName('intro-title')[0].classList.add('intro-fade-in');
+                    document.getElementsByClassName('intro-subtitle')[0].classList.add('intro-fade-in');
+                    var postIntroTags = document.getElementsByClassName('post-intro-tags')[0],
+                        postIntroMeat = document.getElementsByClassName('post-intro-meta')[0];
+                        if (postIntroTags) {
+                            postIntroTags.classList.add('post-fade-in');
+                        }
+                        if (postIntroMeat) {
+                            postIntroMeat.classList.add('post-fade-in');
+                        }
+                    }
+                }
+                
+            console.log("userAgent:" + browser.versions.userAgent);
+            // UC不支持跨域，所以直接显示
+            if (browser.versions.uc) {
+                console.log("UCBrowser");
+                fontLoaded();
+            } else {
+                WebFont.load({
+                    custom: {
+                        families: ['Oswald-Regular']
+                    },
+                    loading: function () {  //所有字体开始加载
+                        // console.log('loading');
+                    },
+                    active: function () {  //所有字体已渲染
+                        fontLoaded();
+                    },
+                    inactive: function () { //字体预加载失败，无效字体或浏览器不支持加载
+                        console.log('inactive: timeout');
+                        fontLoaded();
+                    },
+                    timeout: 7000 // Set the timeout to two seconds
+                });
+            }
+        </script>
+        <div class="container container-unloaded">
+            <main class="main post-page">
+    <article class="article-entry">
+        <h1 id="An-Overview-inside-Distributed-Tensorflow-Workflow"><a href="#An-Overview-inside-Distributed-Tensorflow-Workflow" class="headerlink" title="An Overview inside Distributed Tensorflow Workflow"></a>An Overview inside Distributed Tensorflow Workflow</h1><p>This article summarizes my understanding of distributed Tensorflow’s workflow. I’d like divide it into following four parts:</p>
+<ul>
+<li>Create a server;</li>
+<li>Create a session;</li>
+<li>Build a computation graph;</li>
+<li>Run a session.</li>
+</ul>
+<p>So let’s start from creating a server.</p>
+<h2 id="Create-a-server"><a href="#Create-a-server" class="headerlink" title="Create a server"></a>Create a server</h2><p><code>grpc_tensorflow_server.cc</code></p>
+<p>Start to create a new server. Each server changes between these three states: <strong>Start</strong>, <strong>Join</strong> and <strong>Stop</strong>.</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span> </span>&#123;</span><br><span class="line">...</span><br><span class="line">  TF_QCHECK_OK(tensorflow::NewServer(server_def, &amp;server));</span><br><span class="line">  TF_QCHECK_OK(server-&gt;Start());</span><br><span class="line">  TF_QCHECK_OK(server-&gt;Join());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>grpc_server_lib.cc</code></p>
+<h2 id="Create-a-Grpc-server-and-call-the-Init-function"><a href="#Create-a-Grpc-server-and-call-the-Init-function" class="headerlink" title="Create a Grpc server and call the Init( ) function"></a>Create a <strong>Grpc</strong> server and call the <strong>Init( )</strong> function</h2><p>Inside the <strong>Init( )</strong> function, firstly it creates both master environment and worker environment.</p>
+<p>The master environment mainly holds:</p>
+<ul>
+<li><p>local devices</p>
+</li>
+<li><p>Worker cache</p>
+</li>
+<li><p>Master session factory</p>
+</li>
+</ul>
+<p>And worker environment holds:</p>
+<ul>
+<li>Local devices</li>
+<li>Device_mgr</li>
+<li>rendezvous_mgr</li>
+<li>Session_mgr</li>
+<li>Compute_pool</li>
+</ul>
+<p>Then the <strong>Grpc</strong> server starts one thread for master service and another for worker service respectively. We will see how these two services work in the following sections:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GrpcServerFactory</span> :</span> <span class="keyword">public</span> ServerFactory &#123;</span><br><span class="line">...</span><br><span class="line">  <span class="function">Status <span class="title">NewServer</span><span class="params">(<span class="keyword">const</span> ServerDef&amp; server_def,</span></span></span><br><span class="line"><span class="function"><span class="params">                   <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;ServerInterface&gt;* out_server)</span> override </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> GrpcServer::Create(server_def, Env::Default(), out_server);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">Status GrpcServer::Create(<span class="keyword">const</span> ServerDef&amp; server_def, Env* env,</span><br><span class="line">                          <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;ServerInterface&gt;* out_server) &#123;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;GrpcServer&gt; ret(</span><br><span class="line">      <span class="keyword">new</span> GrpcServer(server_def, env == <span class="literal">nullptr</span> ? Env::Default() : env));</span><br><span class="line">  ServiceInitFunction service_func = <span class="literal">nullptr</span>;</span><br><span class="line">  TF_RETURN_IF_ERROR(ret-&gt;Init(service_func, NewRpcRendezvousMgr));</span><br><span class="line">  *out_server = <span class="built_in">std</span>::move(ret);</span><br><span class="line">  <span class="keyword">return</span> Status::OK();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">Status GrpcServer::Init(</span><br><span class="line">    ServiceInitFunction service_func,</span><br><span class="line">    <span class="keyword">const</span> RendezvousMgrCreationFunction&amp; rendezvous_mgr_func,</span><br><span class="line">    <span class="keyword">const</span> WorkerCreationFunction&amp; worker_func) &#123;</span><br><span class="line">...</span><br><span class="line">  master_env_.env = env_;</span><br><span class="line">  worker_env_.env = env_;</span><br><span class="line">...</span><br><span class="line">  TF_RETURN_IF_ERROR(DeviceFactory::AddDevices(sess_opts, name_prefix,</span><br><span class="line">                                               &amp;master_env_.local_devices));</span><br><span class="line">  worker_env_.local_devices = master_env_.local_devices;</span><br><span class="line">  worker_env_.device_mgr = <span class="keyword">new</span> DeviceMgr(worker_env_.local_devices);</span><br><span class="line">  worker_env_.rendezvous_mgr = rendezvous_mgr_func == <span class="literal">nullptr</span></span><br><span class="line">                                   ? <span class="keyword">new</span> RpcRendezvousMgr(&amp;worker_env_)</span><br><span class="line">                                   : rendezvous_mgr_func(&amp;worker_env_);</span><br><span class="line">...</span><br><span class="line">  master_impl_ = CreateMaster(&amp;master_env_);</span><br><span class="line">  master_service_ = NewGrpcMasterService(</span><br><span class="line">      master_impl_.get(), config.operation_timeout_in_ms(), &amp;builder);</span><br><span class="line">  worker_impl_ =</span><br><span class="line">      worker_func ? worker_func(&amp;worker_env_) : NewGrpcWorker(&amp;worker_env_);</span><br><span class="line">  worker_service_ =</span><br><span class="line">      NewGrpcWorkerService(worker_impl_.get(), &amp;builder).release();</span><br><span class="line">...</span><br><span class="line">  TF_RETURN_IF_ERROR(</span><br><span class="line">      WorkerCacheFactory(worker_cache_factory_options, &amp;worker_cache));</span><br><span class="line">...</span><br><span class="line">  <span class="comment">// Set up worker environment.</span></span><br><span class="line">  worker_env_.session_mgr = <span class="keyword">new</span> SessionMgr(</span><br><span class="line">      &amp;worker_env_, SessionMgr::WorkerNameFromServerDef(server_def_),</span><br><span class="line">      <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;WorkerCacheInterface&gt;(worker_cache),</span><br><span class="line">      [<span class="keyword">this</span>](<span class="keyword">const</span> ServerDef&amp; server_def, WorkerCacheInterface** worker_cache) &#123;</span><br><span class="line">        WorkerCacheFactoryOptions options(server_def);</span><br><span class="line">        <span class="keyword">return</span> WorkerCacheFactory(options, worker_cache);</span><br><span class="line">      &#125;);</span><br><span class="line">  worker_env_.compute_pool = ComputePool(sess_opts);</span><br><span class="line">...</span><br><span class="line">  master_env_.master_session_factory =</span><br><span class="line">      [config](</span><br><span class="line">          SessionOptions options, <span class="keyword">const</span> MasterEnv* env,</span><br><span class="line">          <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;<span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;Device&gt;&gt;&gt; remote_devs,</span><br><span class="line">          <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;WorkerCacheInterface&gt; worker_cache,</span><br><span class="line">          <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;DeviceSet&gt; device_set) &#123;</span><br><span class="line">        options.config.MergeFrom(config);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MasterSession(options, env, <span class="built_in">std</span>::move(remote_devs),</span><br><span class="line">                                 <span class="built_in">std</span>::move(worker_cache), <span class="built_in">std</span>::move(device_set),</span><br><span class="line">                                 CreateNoOpStatsPublisher);</span><br><span class="line">      &#125;;</span><br><span class="line">  master_env_.worker_cache_factory =</span><br><span class="line">      [<span class="keyword">this</span>](<span class="keyword">const</span> WorkerCacheFactoryOptions&amp; options,</span><br><span class="line">             WorkerCacheInterface** worker_cache) &#123;</span><br><span class="line">        <span class="keyword">return</span> WorkerCacheFactory(options, worker_cache);</span><br><span class="line">      &#125;;</span><br><span class="line">  <span class="comment">// Provide direct access to the master from in-process clients.</span></span><br><span class="line">  LocalMaster::Register(target(), master_impl_.get(),</span><br><span class="line">                        config.operation_timeout_in_ms());</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">  </span><br><span class="line">Status GrpcServer::WorkerCacheFactory(<span class="keyword">const</span> WorkerCacheFactoryOptions&amp; options,</span><br><span class="line">                                      WorkerCacheInterface** worker_cache) &#123;</span><br><span class="line">  *worker_cache = NewGrpcWorkerCacheWithLocalWorker(</span><br><span class="line">      channel_cache.release(), worker_impl_.get(), name_prefix);</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">Status GrpcServer::Start() &#123;</span><br><span class="line">  <span class="function">mutex_lock <span class="title">l</span><span class="params">(mu_)</span></span>;</span><br><span class="line">  <span class="keyword">switch</span> (state_) &#123;</span><br><span class="line">    <span class="keyword">case</span> NEW: &#123;</span><br><span class="line">      master_thread_.reset(</span><br><span class="line">          env_-&gt;StartThread(ThreadOptions(), <span class="string">"TF_master_service"</span>,</span><br><span class="line">                            [<span class="keyword">this</span>] &#123; master_service_-&gt;HandleRPCsLoop(); &#125;));</span><br><span class="line">      worker_thread_.reset(</span><br><span class="line">          env_-&gt;StartThread(ThreadOptions(), <span class="string">"TF_worker_service"</span>,</span><br><span class="line">                            [<span class="keyword">this</span>] &#123; worker_service_-&gt;HandleRPCsLoop(); &#125;));</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p>Starts the master service. The function <strong>HandleRPCsLoop( )</strong> handles the out-coming Grpc request. Each request of function invokes the specific function handler.</p>
+<p><code>grpc_master_service.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">HandleRPCsLoop</span><span class="params">()</span> override </span>&#123;</span><br><span class="line">    ENQUEUE_REQUEST(CreateSession, <span class="literal">true</span>);</span><br><span class="line">    ENQUEUE_REQUEST(ExtendSession, <span class="literal">false</span>);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; ++i) &#123;</span><br><span class="line">      ENQUEUE_REQUEST(PartialRunSetup, <span class="literal">false</span>);</span><br><span class="line">      ENQUEUE_REQUEST(RunStep, <span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    ENQUEUE_REQUEST(CloseSession, <span class="literal">false</span>);</span><br><span class="line">    ENQUEUE_REQUEST(ListDevices, <span class="literal">false</span>);</span><br><span class="line">    ENQUEUE_REQUEST(Reset, <span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">void</span>* tag;</span><br><span class="line">    <span class="keyword">bool</span> ok;</span><br><span class="line">    <span class="keyword">while</span> (cq_-&gt;Next(&amp;tag, &amp;ok)) &#123;</span><br><span class="line">      UntypedCall&lt;GrpcMasterService&gt;::Tag* callback_tag =</span><br><span class="line">          <span class="keyword">static_cast</span>&lt;UntypedCall&lt;GrpcMasterService&gt;::Tag*&gt;(tag);</span><br><span class="line">      <span class="keyword">if</span> (callback_tag) &#123;</span><br><span class="line">        callback_tag-&gt;OnCompleted(<span class="keyword">this</span>, ok);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// NOTE(mrry): A null `callback_tag` indicates that this is</span></span><br><span class="line">        <span class="comment">// the shutdown alarm.</span></span><br><span class="line">        cq_-&gt;Shutdown();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// RPC handler for creating a session.</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">CreateSessionHandler</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      MasterCall&lt;CreateSessionRequest, CreateSessionResponse&gt;* call)</span> </span>&#123;</span><br><span class="line">    master_impl_-&gt;CreateSession(&amp;call-&gt;request, &amp;call-&gt;response,</span><br><span class="line">                                [call](<span class="keyword">const</span> Status&amp; status) &#123;</span><br><span class="line">                                  call-&gt;SendResponse(ToGrpcStatus(status));</span><br><span class="line">                                &#125;);</span><br><span class="line">    ENQUEUE_REQUEST(CreateSession, <span class="literal">true</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// RPC handler for running one step in a session.</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">RunStepHandler</span><span class="params">(MasterCall&lt;RunStepRequest, RunStepResponse&gt;* call)</span> </span>&#123;</span><br><span class="line">...</span><br><span class="line">    master_impl_-&gt;RunStep(call_opts, wrapped_request, wrapped_response,</span><br><span class="line">                          [call, call_opts, wrapped_request, wrapped_response,</span><br><span class="line">                           trace](<span class="keyword">const</span> Status&amp; status) &#123;</span><br><span class="line">                            call-&gt;ClearCancelCallback();</span><br><span class="line">                            <span class="keyword">delete</span> call_opts;</span><br><span class="line">                            <span class="keyword">delete</span> wrapped_request;</span><br><span class="line">                            <span class="keyword">delete</span> trace;</span><br><span class="line">                            call-&gt;SendResponse(ToGrpcStatus(status));</span><br><span class="line">                          &#125;);</span><br><span class="line">    ENQUEUE_REQUEST(RunStep, <span class="literal">true</span>);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p>Master class is responsible for creating and maintaining a master session:</p>
+<p><code>master.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Master implements the service MasterSerivce.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// A Master maintains the state of live graph computation</span></span><br><span class="line"><span class="comment">// sessions, each session orchestrates both local and remote devices</span></span><br><span class="line"><span class="comment">// to carry out the graph computation.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// A Master knows ahead of time local devices available as</span></span><br><span class="line"><span class="comment">// client devices.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// A Master discovers remote devices on-demand and keeps track of</span></span><br><span class="line"><span class="comment">// statistics of those remote devices.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// Each session analyzes the graph, places nodes across available</span></span><br><span class="line"><span class="comment">// devices, and ultimately drives the graph computation by initiating</span></span><br><span class="line"><span class="comment">// RunGraph on the workers.</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> Master::CreateSession(<span class="keyword">const</span> CreateSessionRequest* req,</span><br><span class="line">                           CreateSessionResponse* resp, MyClosure done) &#123;</span><br><span class="line">...</span><br><span class="line">    status = ValidateExternalGraphDefSyntax(req-&gt;graph_def());</span><br><span class="line">...</span><br><span class="line">      <span class="comment">// Create the worker cache from the computed server_def.</span></span><br><span class="line">      status = env_-&gt;worker_cache_factory(worker_cache_factory_options,</span><br><span class="line">                                          &amp;worker_cache);</span><br><span class="line">...</span><br><span class="line">    MasterSession* session = env_-&gt;master_session_factory(</span><br><span class="line">        options, env_, <span class="built_in">std</span>::move(remote_devices), <span class="built_in">std</span>::move(worker_cache_ptr),</span><br><span class="line">        <span class="built_in">std</span>::move(device_set));</span><br><span class="line">...</span><br><span class="line">    status = session-&gt;Create(gdef, worker_cache_factory_options);</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> Master::RunStep(CallOptions* opts, <span class="keyword">const</span> RunStepRequestWrapper* req,</span><br><span class="line">                     MutableRunStepResponseWrapper* resp, MyClosure done) &#123;</span><br><span class="line">...</span><br><span class="line">  SchedClosure([<span class="keyword">this</span>, start_time, session, opts, req, resp, done]() &#123;</span><br><span class="line">    Status status = session-&gt;Run(opts, *req, resp);</span><br><span class="line">...</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>master_session.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">Status MasterSession::Create(GraphDef* graph_def,</span><br><span class="line">                             <span class="keyword">const</span> WorkerCacheFactoryOptions&amp; options) &#123;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="function">mutex_lock <span class="title">l</span><span class="params">(mu_)</span></span>;</span><br><span class="line">    TF_RETURN_IF_ERROR(GraphExecutionState::MakeForBaseGraph(</span><br><span class="line">        graph_def, execution_options, &amp;execution_state_));</span><br><span class="line">  &#125;</span><br><span class="line">...</span><br><span class="line">    <span class="keyword">return</span> CreateWorkerSessions(options);</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">Status MasterSession::CreateWorkerSessions(</span><br><span class="line">    <span class="keyword">const</span> WorkerCacheFactoryOptions&amp; options) &#123;</span><br><span class="line">...</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">WorkerGroup</span> &#123;</span></span><br><span class="line">    <span class="comment">// The worker name. (Not owned.)</span></span><br><span class="line">    <span class="keyword">const</span> <span class="built_in">string</span>* name;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// The worker referenced by name. (Not owned.)</span></span><br><span class="line">    WorkerInterface* worker = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Request and responses used for a given worker.</span></span><br><span class="line">    CreateWorkerSessionRequest request;</span><br><span class="line">    CreateWorkerSessionResponse response;</span><br><span class="line">...</span><br><span class="line">  &#125;;</span><br><span class="line">...</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;WorkerGroup&gt; workers(worker_names.size());</span><br><span class="line">...</span><br><span class="line">  <span class="comment">// Create all the workers &amp; kick off the computations.</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; worker_names.size(); ++i) &#123;</span><br><span class="line">...</span><br><span class="line">    workers[i].worker = worker_cache_-&gt;CreateWorker(worker_names[i]);</span><br><span class="line">...</span><br><span class="line">    workers[i].worker-&gt;CreateWorkerSessionAsync(&amp;workers[i].request,</span><br><span class="line">                                                &amp;workers[i].response, cb);</span><br><span class="line">...</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>grpc_worker_cache.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function">WorkerInterface* <span class="title">CreateWorker</span><span class="params">(<span class="keyword">const</span> <span class="built_in">string</span>&amp; target)</span> override </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (target == local_target_) &#123;</span><br><span class="line">      <span class="keyword">return</span> local_worker_;</span><br><span class="line">    &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">...</span><br><span class="line">      <span class="keyword">return</span> NewGrpcRemoteWorker(channel, &amp;completion_queue_, &amp;logger_);</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>grpc_remote_worker.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CreateWorkerSessionAsync</span><span class="params">(<span class="keyword">const</span> CreateWorkerSessionRequest* request,</span></span></span><br><span class="line"><span class="function"><span class="params">                              CreateWorkerSessionResponse* response,</span></span></span><br><span class="line"><span class="function"><span class="params">                              StatusCallback done)</span> override </span>&#123;</span><br><span class="line">  IssueRequest(request, response, createworkersession_, <span class="built_in">std</span>::move(done));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>grpc_worker_service.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">HandleRPCsLoop</span><span class="params">()</span> override </span>&#123;</span><br><span class="line">    <span class="comment">// TODO(mrry): This may require performance engineering. We can</span></span><br><span class="line">    <span class="comment">// add more threads to service the completion queue, and add more</span></span><br><span class="line">    <span class="comment">// of various request types if they are short and frequent.</span></span><br><span class="line">    <span class="comment">// Currently we allow unbounded numbers of pending calls for each</span></span><br><span class="line">    <span class="comment">// method, by re-enqueuing a request before the previous one</span></span><br><span class="line">    <span class="comment">// completes, and we may decide to bound some of the request</span></span><br><span class="line">    <span class="comment">// types.</span></span><br><span class="line">    ENQUEUE_REQUEST(GetStatus, <span class="literal">false</span>);</span><br><span class="line">    ENQUEUE_REQUEST(CreateWorkerSession, <span class="literal">false</span>);</span><br><span class="line">    ENQUEUE_REQUEST(DeleteWorkerSession, <span class="literal">false</span>);</span><br><span class="line">    ENQUEUE_REQUEST(CleanupAll, <span class="literal">false</span>);</span><br><span class="line">    ENQUEUE_REQUEST(RegisterGraph, <span class="literal">false</span>);</span><br><span class="line">    ENQUEUE_REQUEST(DeregisterGraph, <span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// TODO(mrry): Determine a better policy for enqueuing the appropriate</span></span><br><span class="line">    <span class="comment">// number of each request type.</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; ++i) &#123;</span><br><span class="line">      EnqueueRecvTensorRequestRaw();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; ++i) &#123;</span><br><span class="line">      ENQUEUE_REQUEST(RunGraph, <span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; ++i) &#123;</span><br><span class="line">      ENQUEUE_REQUEST(CleanupGraph, <span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ENQUEUE_REQUEST(Logging, <span class="literal">false</span>);</span><br><span class="line">    ENQUEUE_REQUEST(Tracing, <span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">void</span>* tag;</span><br><span class="line">    <span class="keyword">bool</span> ok;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (cq_-&gt;Next(&amp;tag, &amp;ok)) &#123;</span><br><span class="line">      UntypedCall&lt;GrpcWorkerService&gt;::Tag* callback_tag =</span><br><span class="line">          <span class="keyword">static_cast</span>&lt;UntypedCall&lt;GrpcWorkerService&gt;::Tag*&gt;(tag);</span><br><span class="line">      <span class="keyword">if</span> (callback_tag) &#123;</span><br><span class="line">        callback_tag-&gt;OnCompleted(<span class="keyword">this</span>, ok);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// NOTE(mrry): A null `callback_tag` indicates that this is</span></span><br><span class="line">        <span class="comment">// the shutdown alarm.</span></span><br><span class="line">        cq_-&gt;Shutdown();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">void</span> <span class="title">CreateWorkerSessionHandler</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        WorkerCall&lt;CreateWorkerSessionRequest, CreateWorkerSessionResponse&gt;*</span></span></span><br><span class="line"><span class="function"><span class="params">            call)</span> </span>&#123;</span><br><span class="line">      Schedule([<span class="keyword">this</span>, call]() &#123;</span><br><span class="line">        Status s = worker_-&gt;CreateWorkerSession(&amp;call-&gt;request, &amp;call-&gt;response);</span><br><span class="line">        call-&gt;SendResponse(ToGrpcStatus(s));</span><br><span class="line">      &#125;);</span><br><span class="line">      ENQUEUE_REQUEST(CreateWorkerSession, <span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">  ...</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">RunGraphHandler</span><span class="params">(WorkerCall&lt;RunGraphRequest, RunGraphResponse&gt;* call)</span> </span>&#123;</span><br><span class="line">    Schedule([<span class="keyword">this</span>, call]() &#123;</span><br><span class="line">      CallOptions* call_opts = <span class="keyword">new</span> CallOptions;</span><br><span class="line">      ProtoRunGraphRequest* wrapped_request =</span><br><span class="line">          <span class="keyword">new</span> ProtoRunGraphRequest(&amp;call-&gt;request);</span><br><span class="line">      NonOwnedProtoRunGraphResponse* wrapped_response =</span><br><span class="line">          <span class="keyword">new</span> NonOwnedProtoRunGraphResponse(&amp;call-&gt;response);</span><br><span class="line">      call-&gt;SetCancelCallback([call_opts]() &#123; call_opts-&gt;StartCancel(); &#125;);</span><br><span class="line">      worker_-&gt;RunGraphAsync(call_opts, wrapped_request, wrapped_response,</span><br><span class="line">                             [call, call_opts, wrapped_request,</span><br><span class="line">                              wrapped_response](<span class="keyword">const</span> Status&amp; s) &#123;</span><br><span class="line">                               call-&gt;ClearCancelCallback();</span><br><span class="line">                               <span class="keyword">delete</span> call_opts;</span><br><span class="line">                               <span class="keyword">delete</span> wrapped_request;</span><br><span class="line">                               <span class="keyword">delete</span> wrapped_response;</span><br><span class="line">                               call-&gt;SendResponse(ToGrpcStatus(s));</span><br><span class="line">                             &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">    ENQUEUE_REQUEST(RunGraph, <span class="literal">true</span>);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>worker.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> Worker::CreateWorkerSessionAsync(<span class="keyword">const</span> CreateWorkerSessionRequest* request,</span><br><span class="line">                                      CreateWorkerSessionResponse* response,</span><br><span class="line">                                      StatusCallback done) &#123;</span><br><span class="line">  Status s = env_-&gt;session_mgr-&gt;CreateSession(request-&gt;session_handle(),</span><br><span class="line">                                              request-&gt;server_def());</span><br><span class="line">  done(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>session_mgr.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Status SessionMgr::CreateSession(<span class="keyword">const</span> <span class="built_in">string</span>&amp; session,</span><br><span class="line">                                 <span class="keyword">const</span> ServerDef&amp; server_def) &#123;</span><br><span class="line">...</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;DeviceMgr&gt; device_mgr(<span class="keyword">new</span> DeviceMgr(renamed_devices));</span><br><span class="line">...</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;WorkerSession&gt; worker_session(<span class="keyword">new</span> WorkerSession(</span><br><span class="line">      session, worker_name, <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;WorkerCacheInterface&gt;(worker_cache),</span><br><span class="line">      <span class="built_in">std</span>::move(device_mgr), <span class="built_in">std</span>::move(graph_mgr)));</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>worker_session.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">WorkerSession::WorkerSession(<span class="keyword">const</span> <span class="built_in">string</span>&amp; session_name,</span><br><span class="line">                             <span class="keyword">const</span> <span class="built_in">string</span>&amp; worker_name,</span><br><span class="line">                             <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;WorkerCacheInterface&gt; worker_cache,</span><br><span class="line">                             <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;DeviceMgr&gt; device_mgr,</span><br><span class="line">                             <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;GraphMgr&gt; graph_mgr)</span><br><span class="line">    : session_name(session_name),</span><br><span class="line">      worker_name(worker_name),</span><br><span class="line">      worker_cache(<span class="keyword">new</span> WorkerFreeListCache(<span class="built_in">std</span>::move(worker_cache))),</span><br><span class="line">      device_mgr(<span class="built_in">std</span>::move(device_mgr)),</span><br><span class="line">      graph_mgr(<span class="built_in">std</span>::move(graph_mgr)),</span><br><span class="line">      cluster_flr(<span class="keyword">new</span> ClusterFunctionLibraryRuntime(<span class="keyword">this</span>)) &#123;&#125;</span><br><span class="line"></span><br><span class="line">&#125;  <span class="comment">// namespace tensorflow</span></span><br></pre></td></tr></table></figure>
+<h2 id="Graph-execution"><a href="#Graph-execution" class="headerlink" title="Graph execution"></a>Graph execution</h2><p>A graph definition is passed through the session, and constructed by the master.</p>
+<p><code>graph.proto</code></p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// Represents the graph of operations</span><br><span class="line">message GraphDef &#123;</span><br><span class="line">  repeated NodeDef node = 1;</span><br><span class="line">...</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>node_def.proto</code></p>
+<figure class="highlight protobuf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">message NodeDef &#123;</span><br><span class="line">  // The name given to this operator. Used for naming inputs,</span><br><span class="line">  // logging, visualization, etc.  Unique within a single GraphDef.</span><br><span class="line">  // Must match the regexp &quot;[A-Za-z0-9.][A-Za-z0-9_./]*&quot;.</span><br><span class="line">  string name = 1;</span><br><span class="line"></span><br><span class="line">  // The operation name.  There may be custom parameters in attrs.</span><br><span class="line">  // Op names starting with an underscore are reserved for internal use.</span><br><span class="line">  string op = 2;</span><br><span class="line"></span><br><span class="line">  // Each input is &quot;node:src_output&quot; with &quot;node&quot; being a string name and</span><br><span class="line">  // &quot;src_output&quot; indicating which output tensor to use from &quot;node&quot;. If</span><br><span class="line">  // &quot;src_output&quot; is 0 the &quot;:0&quot; suffix can be omitted.  Regular inputs</span><br><span class="line">  // may optionally be followed by control inputs that have the format</span><br><span class="line">  // &quot;^node&quot;.</span><br><span class="line">  repeated string input = 3;</span><br><span class="line"></span><br><span class="line">  // A (possibly partial) specification for the device on which this</span><br><span class="line">  // node should be placed.</span><br><span class="line">  // The expected syntax for this string is as follows:</span><br><span class="line">  //</span><br><span class="line">  // DEVICE_SPEC ::= PARTIAL_SPEC</span><br><span class="line">  //</span><br><span class="line">  // PARTIAL_SPEC ::= (&quot;/&quot; CONSTRAINT) *</span><br><span class="line">  // CONSTRAINT ::= (&quot;job:&quot; JOB_NAME)</span><br><span class="line">  //              | (&quot;replica:&quot; [1-9][0-9]*)</span><br><span class="line">  //              | (&quot;task:&quot; [1-9][0-9]*)</span><br><span class="line">  //              | (&quot;device:&quot; [A-Za-z]* &quot;:&quot; ([1-9][0-9]* | &quot;*&quot;) )</span><br><span class="line">  //</span><br><span class="line">  // Valid values for this string include:</span><br><span class="line">  // * &quot;/job:worker/replica:0/task:1/device:GPU:3&quot;  (full specification)</span><br><span class="line">  // * &quot;/job:worker/device:GPU:3&quot;                   (partial specification)</span><br><span class="line">  // * &quot;&quot;                                    (no specification)</span><br><span class="line">  //</span><br><span class="line">  // If the constraints do not resolve to a single device (or if this</span><br><span class="line">  // field is empty or not present), the runtime will attempt to</span><br><span class="line">  // choose a device automatically.</span><br><span class="line">  string device = 4;</span><br><span class="line"></span><br><span class="line">  // Operation-specific graph-construction-time configuration.</span><br><span class="line">  // Note that this should include all attrs defined in the</span><br><span class="line">  // corresponding OpDef, including those with a value matching</span><br><span class="line">  // the default -- this allows the default to change and makes</span><br><span class="line">  // NodeDefs easier to interpret on their own.  However, if</span><br><span class="line">  // an attr with a default is not specified in this list, the</span><br><span class="line">  // default will be used.</span><br><span class="line">  // The &quot;names&quot; (keys) must match the regexp &quot;[a-z][a-z0-9_]+&quot; (and</span><br><span class="line">  // one of the names from the corresponding OpDef&apos;s attr field).</span><br><span class="line">  // The values must have a type matching the corresponding OpDef</span><br><span class="line">  // attr&apos;s type field.</span><br><span class="line">  // TODO(josh11b): Add some examples here showing best practices.</span><br><span class="line">  map&lt;string, AttrValue&gt; attr = 5;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>graph_execution.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* static */</span> Status GraphExecutionState::MakeForBaseGraph(</span><br><span class="line">    GraphDef* graph_def, <span class="keyword">const</span> GraphExecutionStateOptions&amp; options,</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;GraphExecutionState&gt;* out_state) &#123;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;GraphExecutionState&gt; ret(</span><br><span class="line">      <span class="keyword">new</span> GraphExecutionState(graph_def, options));</span><br><span class="line">...</span><br><span class="line">    TF_RETURN_IF_ERROR(ret-&gt;InitBaseGraph(BuildGraphOptions()));</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Status GraphExecutionState::InitBaseGraph(<span class="keyword">const</span> BuildGraphOptions&amp; options) &#123;</span><br><span class="line">...</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">unique_ptr</span>&lt;Graph&gt; new_graph(<span class="keyword">new</span> Graph(OpRegistry::Global()));</span><br><span class="line">...</span><br><span class="line">  TF_RETURN_IF_ERROR(ConvertGraphDefToGraph(opts, *graph_def, new_graph.get()));</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>graph_constructor.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Status <span class="title">ConvertGraphDefToGraph</span><span class="params">(<span class="keyword">const</span> GraphConstructorOptions&amp; opts,</span></span></span><br><span class="line"><span class="function"><span class="params">                              <span class="keyword">const</span> GraphDef&amp; gdef, Graph* g)</span> </span>&#123;</span><br><span class="line">  ShapeRefiner refiner(gdef.versions().producer(), g-&gt;op_registry());</span><br><span class="line">  <span class="keyword">return</span> GraphConstructor::Construct(</span><br><span class="line">      opts, gdef.node(), &amp;gdef.versions(), &amp;gdef.library(), g, &amp;refiner,</span><br><span class="line">      <span class="comment">/*return_tensors=*/</span><span class="literal">nullptr</span>, <span class="comment">/*return_nodes=*/</span><span class="literal">nullptr</span>,</span><br><span class="line">      <span class="comment">/*unused_input_map_keys=*/</span><span class="literal">nullptr</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Run-session"><a href="#Run-session" class="headerlink" title="Run session"></a>Run session</h2><p><code>master_session.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br></pre></td><td class="code"><pre><span class="line">Status MasterSession::Run(CallOptions* opts, <span class="keyword">const</span> RunStepRequestWrapper&amp; req,</span><br><span class="line">                          MutableRunStepResponseWrapper* resp) &#123;</span><br><span class="line">...</span><br><span class="line">    status = DoRunWithLocalExecution(opts, req, resp);</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">status MasterSession::StartStep(<span class="keyword">const</span> BuildGraphOptions&amp; opts, int64* count,</span><br><span class="line">                                ReffedClientGraph** rcg, <span class="keyword">bool</span> is_partial) &#123;</span><br><span class="line">...</span><br><span class="line">      <span class="keyword">auto</span> entry = <span class="keyword">new</span> ReffedClientGraph(</span><br><span class="line">          handle_, opts, <span class="built_in">std</span>::move(client_graph), session_opts_,</span><br><span class="line">          stats_publisher_factory_, execution_state_.get(), is_partial,</span><br><span class="line">          worker_cache, !should_delete_worker_sessions_);</span><br><span class="line">      iter = m-&gt;insert(&#123;hash, entry&#125;).first;</span><br><span class="line">      VLOG(<span class="number">1</span>) &lt;&lt; <span class="string">"Preparing to execute new graph"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    *rcg = iter-&gt;second;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">Status MasterSession::DoRunWithLocalExecution(</span><br><span class="line">    CallOptions* opts, <span class="keyword">const</span> RunStepRequestWrapper&amp; req,</span><br><span class="line">    MutableRunStepResponseWrapper* resp) &#123;</span><br><span class="line">...</span><br><span class="line">  ReffedClientGraph* rcg = <span class="literal">nullptr</span>;</span><br><span class="line">...</span><br><span class="line">  TF_RETURN_IF_ERROR(BuildAndRegisterPartitions(rcg));</span><br><span class="line">...</span><br><span class="line">  pss.collect_partition_graphs = req.options().output_partition_graphs();</span><br><span class="line">...</span><br><span class="line">  Status s = rcg-&gt;RunPartitions(env_, step_id, count, &amp;pss, opts, req, resp,</span><br><span class="line">                                &amp;cancellation_manager_, <span class="literal">false</span>);</span><br><span class="line">  <span class="keyword">if</span> (s.ok()) &#123;</span><br><span class="line">...</span><br><span class="line">    <span class="comment">// Schedule post-processing and cleanup to be done asynchronously.</span></span><br><span class="line">    rcg-&gt;ProcessStats(step_id, &amp;pss, ph.get(), req.options(),</span><br><span class="line">                      resp-&gt;mutable_metadata());</span><br><span class="line">...</span><br><span class="line">  &#125;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">  </span><br><span class="line">Status MasterSession::BuildAndRegisterPartitions(ReffedClientGraph* rcg) &#123;</span><br><span class="line">...</span><br><span class="line">  TF_RETURN_IF_ERROR(rcg-&gt;RegisterPartitions(popts));</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">  </span><br><span class="line">Status MasterSession::ReffedClientGraph::RegisterPartitions(</span><br><span class="line">    <span class="keyword">const</span> PartitionOptions&amp; popts) &#123;</span><br><span class="line">      Status s = DoBuildPartitions(popts, &amp;graph_defs);</span><br><span class="line">...</span><br><span class="line">        s = DoRegisterPartitions(popts, <span class="built_in">std</span>::move(graph_defs));</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line">Status MasterSession::ReffedClientGraph::RunPartitions(</span><br><span class="line">    <span class="keyword">const</span> MasterEnv* env, int64 step_id, int64 execution_count,</span><br><span class="line">    PerStepState* pss, CallOptions* call_opts, <span class="keyword">const</span> RunStepRequestWrapper&amp; req,</span><br><span class="line">    MutableRunStepResponseWrapper* resp, CancellationManager* cm,</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">bool</span> is_last_partial_run) &#123;</span><br><span class="line">...</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">int</span> num = partitions_.size();</span><br><span class="line">  <span class="function">RunManyGraphs <span class="title">calls</span><span class="params">(num)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; num; ++i) &#123;</span><br><span class="line">    <span class="keyword">const</span> Part&amp; part = partitions_[i];</span><br><span class="line">    RunManyGraphs::Call* c = calls.get(i);</span><br><span class="line">    c-&gt;req.reset(part.worker-&gt;CreateRunGraphRequest());</span><br><span class="line">    c-&gt;resp.reset(part.worker-&gt;CreateRunGraphResponse());</span><br><span class="line">...</span><br><span class="line">  <span class="comment">// Issues RunGraph calls.</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; num; ++i) &#123;</span><br><span class="line">    <span class="keyword">const</span> Part&amp; part = partitions_[i];</span><br><span class="line">    RunManyGraphs::Call* call = calls.get(i);</span><br><span class="line">    TRACEPRINTF(<span class="string">"Partition %d %s"</span>, i, part.name.c_str());</span><br><span class="line">    part.worker-&gt;RunGraphAsync(</span><br><span class="line">        &amp;call-&gt;opts, call-&gt;req.get(), call-&gt;resp.get(),</span><br><span class="line">        <span class="built_in">std</span>::bind(&amp;RunManyGraphs::WhenDone, &amp;calls, i, <span class="built_in">std</span>::placeholders::_1));</span><br><span class="line">  &#125;</span><br><span class="line">...</span><br><span class="line">  calls.Wait();</span><br><span class="line">...</span><br><span class="line">  <span class="comment">// Collects fetches.</span></span><br><span class="line">  Status status = calls.status();</span><br><span class="line">  <span class="keyword">if</span> (status.ok()) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; num; ++i) &#123;</span><br><span class="line">      <span class="keyword">const</span> Part&amp; part = partitions_[i];</span><br><span class="line">      MutableRunGraphResponseWrapper* run_graph_resp = calls.get(i)-&gt;resp.get();</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">size_t</span> j = <span class="number">0</span>; j &lt; run_graph_resp-&gt;num_recvs(); ++j) &#123;</span><br><span class="line">        <span class="keyword">auto</span> iter = part.key_fetch.find(run_graph_resp-&gt;recv_key(j));</span><br><span class="line">        <span class="keyword">if</span> (iter == part.key_fetch.end()) &#123;</span><br><span class="line">          status.Update(errors::Internal(<span class="string">"Unexpected fetch key: "</span>,</span><br><span class="line">                                         run_graph_resp-&gt;recv_key(j)));</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">const</span> <span class="built_in">string</span>&amp; fetch = iter-&gt;second;</span><br><span class="line">        status.Update(</span><br><span class="line">            resp-&gt;AddTensorFromRunGraphResponse(fetch, run_graph_resp, j));</span><br><span class="line">        <span class="keyword">if</span> (!status.ok()) &#123;</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (pss-&gt;collect_timeline) &#123;</span><br><span class="line">        pss-&gt;step_stats[i].Swap(run_graph_resp-&gt;mutable_step_stats());</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (pss-&gt;collect_costs) &#123;</span><br><span class="line">        CostGraphDef* cost_graph = run_graph_resp-&gt;mutable_cost_graph();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; cost_graph-&gt;node_size(); ++j) &#123;</span><br><span class="line">          resp-&gt;mutable_metadata()-&gt;mutable_cost_graph()-&gt;add_node()-&gt;Swap(</span><br><span class="line">              cost_graph-&gt;mutable_node(j));</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (pss-&gt;collect_partition_graphs) &#123;</span><br><span class="line">        protobuf::RepeatedPtrField&lt;GraphDef&gt;* partition_graph_defs =</span><br><span class="line">            resp-&gt;mutable_metadata()-&gt;mutable_partition_graphs();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; run_graph_resp-&gt;num_partition_graphs(); i++) &#123;</span><br><span class="line">          partition_graph_defs-&gt;Add()-&gt;Swap(</span><br><span class="line">              run_graph_resp-&gt;mutable_partition_graph(i));</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> status;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>worker.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> Worker::RunGraphAsync(CallOptions* opts, RunGraphRequestWrapper* request,</span><br><span class="line">                           MutableRunGraphResponseWrapper* response,</span><br><span class="line">                           StatusCallback done) &#123;</span><br><span class="line">...</span><br><span class="line">    DoRunGraph(opts, request, response, <span class="built_in">std</span>::move(done));</span><br><span class="line">...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">  </span><br><span class="line"><span class="keyword">void</span> Worker::DoRunGraph(CallOptions* opts, RunGraphRequestWrapper* request,</span><br><span class="line">                        MutableRunGraphResponseWrapper* response,</span><br><span class="line">                        StatusCallback done) &#123;</span><br><span class="line">...</span><br><span class="line">  WorkerSession* session =</span><br><span class="line">      env_-&gt;session_mgr-&gt;WorkerSessionForSession(request-&gt;session_handle());</span><br><span class="line">  GraphMgr::NamedTensors in;</span><br><span class="line">  GraphMgr::NamedTensors* out = <span class="keyword">new</span> GraphMgr::NamedTensors;</span><br><span class="line">  Status s = PrepareRunGraph(request, &amp;in, out);</span><br><span class="line">...</span><br><span class="line">  session-&gt;graph_mgr-&gt;ExecuteAsync(</span><br><span class="line">      request-&gt;graph_handle(), step_id, session, request-&gt;exec_opts(),</span><br><span class="line">      collector, response, cm, in,</span><br><span class="line">      [<span class="keyword">this</span>, step_id, response, session, cm, out, token, collector, opts,</span><br><span class="line">       done](Status s) &#123;</span><br><span class="line">        <span class="keyword">if</span> (s.ok()) &#123;</span><br><span class="line">          s = session-&gt;graph_mgr-&gt;RecvOutputs(step_id, out);</span><br><span class="line">        &#125;</span><br><span class="line">...</span><br><span class="line">        <span class="keyword">if</span> (s.ok()) &#123;</span><br><span class="line">          <span class="keyword">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; p : *out) &#123;</span><br><span class="line">            <span class="keyword">const</span> <span class="built_in">string</span>&amp; key = p.first;</span><br><span class="line">            <span class="keyword">const</span> Tensor&amp; val = p.second;</span><br><span class="line">            response-&gt;AddRecv(key, val);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">...</span><br><span class="line">      &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p><code>graph_mgr.cc</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> GraphMgr::ExecuteAsync(<span class="keyword">const</span> <span class="built_in">string</span>&amp; handle, <span class="keyword">const</span> int64 step_id,</span><br><span class="line">                            WorkerSession* session, <span class="keyword">const</span> ExecutorOpts&amp; opts,</span><br><span class="line">                            StepStatsCollector* collector,</span><br><span class="line">                            MutableRunGraphResponseWrapper* response,</span><br><span class="line">                            CancellationManager* cancellation_manager,</span><br><span class="line">                            <span class="keyword">const</span> NamedTensors&amp; in, StatusCallback done) &#123;</span><br><span class="line">  <span class="comment">// Lookup an item. Holds one ref while executing.</span></span><br><span class="line">  Item* item = <span class="literal">nullptr</span>;</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="function">mutex_lock <span class="title">l</span><span class="params">(mu_)</span></span>;</span><br><span class="line">    <span class="keyword">auto</span> iter = table_.find(handle);</span><br><span class="line">    <span class="keyword">if</span> (iter != table_.end()) &#123;</span><br><span class="line">      item = iter-&gt;second;</span><br><span class="line">      item-&gt;Ref();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">...</span><br><span class="line">  CostGraphDef* cost_graph = <span class="literal">nullptr</span>;</span><br><span class="line">  <span class="keyword">if</span> (response != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">    cost_graph = response-&gt;mutable_cost_graph();</span><br><span class="line">    <span class="keyword">if</span> (opts.record_partition_graphs()) &#123;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">const</span> ExecutionUnit&amp; unit : item-&gt;units) &#123;</span><br><span class="line">        GraphDef graph_def;</span><br><span class="line">        unit.graph-&gt;ToGraphDef(&amp;graph_def);</span><br><span class="line">        response-&gt;AddPartitionGraph(graph_def);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  RemoteRendezvous* rendezvous = worker_env_-&gt;rendezvous_mgr-&gt;Find(step_id);</span><br><span class="line">  Status s = rendezvous-&gt;Initialize(session);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Sends values specified by the caller.</span></span><br><span class="line">  <span class="keyword">if</span> (s.ok()) &#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">string</span>&gt; keys;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Tensor&gt; tensors_to_send;</span><br><span class="line">    keys.reserve(in.size());</span><br><span class="line">    tensors_to_send.reserve(in.size());</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; p : in) &#123;</span><br><span class="line">      keys.push_back(p.first);</span><br><span class="line">      tensors_to_send.push_back(p.second);</span><br><span class="line">    &#125;</span><br><span class="line">    s = SendTensorsToRendezvous(rendezvous, <span class="literal">nullptr</span>, &#123;&#125;, keys, tensors_to_send);</span><br><span class="line">  &#125;</span><br><span class="line">...</span><br><span class="line">  StartParallelExecutors(handle, step_id, item, rendezvous, collector,</span><br><span class="line">                         cost_graph, cancellation_manager,</span><br><span class="line">                         [<span class="keyword">this</span>, item, rendezvous, done](<span class="keyword">const</span> Status&amp; s) &#123;</span><br><span class="line">                           done(s);</span><br><span class="line">                           rendezvous-&gt;Unref();</span><br><span class="line">                           item-&gt;Unref();</span><br><span class="line">                         &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+
+    </article>
+    <!-- 前后页  -->
+    <ul class="post-pager">
+        
+            <li class="next">
+                <a href= "/2018/01/19/190118/" title= Lecture Notes for Reinforcement Learning (MDP) >
+                    <span>Next Post</span>
+                    <span>Lecture Notes for Reinforcement Learning (MDP)</span>
+                </a>
+            </li>
+        
+        
+            <li class="previous">
+                <a href= "/2017/09/25/250917/" title= Stochastic evolutionary game dynamics >
+                    <span>Previous Post</span>
+                    <span>Stochastic evolutionary game dynamics</span>
+                </a>
+            </li>
+        
+    </ul>
+    <!-- 评论插件 -->
+    <!-- 来必力City版安装代码 -->
+
+    <div id="lv-container" data-id="city" data-uid= MTAyMC8zODQyMC8xNDk0OA==>
+        <script type="text/javascript">
+            (function (d, s) {
+                var j, e = d.getElementsByTagName(s)[0];
+                if (typeof LivereTower === 'function') { return; }
+                j = d.createElement(s);
+                j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                j.async = true;
+
+                e.parentNode.insertBefore(j, e);
+            })(document, 'script');
+        </script>
+        <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+    </div>
+
+<!-- City版安装代码已完成 -->
+    
+    
+    <!--PC版-->
+
+    <!--PC版-->
+
+
+    
+    <!-- 评论 -->
+</main>
+            <!-- profile -->
+            
+        </div>
+        <footer class="footer footer-unloaded">
+    <!-- social  -->
+    
+    <div class="social">
+        
+    
+        
+            
+                <a href="mailto:hanweiz@student.unimelb.edu.au" class="iconfont-archer email" title=email ></a>
+            
+        
+    
+        
+            
+                <a href="https://github.com/OwenZhu" class="iconfont-archer github" target="_blank" title="github"></a>
+            
+        
+    
+        
+    
+        
+            
+                <a href="/atom.xml" class="iconfont-archer rss" target="_blank" title="rss"></a>
+            
+        
+    
+
+    </div>
+    
+    <!-- powered by Hexo  -->
+    <div class="copyright">
+        <span id="hexo-power">Powered by <a href="https://hexo.io/" target="_blank">Hexo</a></span><span class="iconfont-archer power">&#xe635;</span><span id="theme-info">Theme <a href="https://github.com/fi3ework/hexo-theme-archer" target="_blank">archer</a></span>
+    </div>
+    <!-- 不蒜子  -->
+    
+    <div class="busuanzi-container">
+        <span id="busuanzi_container_site_pv">VISITOR VOLUME: <span id="busuanzi_value_site_pv"></span>
+        </span>
+    </div>
+    
+</footer>
+    </div>
+    <!-- toc -->
+    
+    <div class="toc-wrapper">
+        <div class="toc-catalog">
+            <span class="iconfont-archer catalog-icon">&#xe613;</span><span>CATALOG</span>
+        </div>
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#An-Overview-inside-Distributed-Tensorflow-Workflow"><span class="toc-number">1.</span> <span class="toc-text">An Overview inside Distributed Tensorflow Workflow</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Create-a-server"><span class="toc-number">1.1.</span> <span class="toc-text">Create a server</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Create-a-Grpc-server-and-call-the-Init-function"><span class="toc-number">1.2.</span> <span class="toc-text">Create a Grpc server and call the Init( ) function</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Graph-execution"><span class="toc-number">1.3.</span> <span class="toc-text">Graph execution</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Run-session"><span class="toc-number">1.4.</span> <span class="toc-text">Run session</span></a></li></ol></li></ol>
+    </div>
+    
+    <div class="back-top">&#xe639;</div>
+    <div class="sidebar">
+    <div class="sidebar-header sidebar-header-show-archive">
+        <div class="sidebar-category">
+            <span class="sidebar-archive-link"><span class="iconfont-archer">&#xe67d;</span>Archive</span>
+            <span class="sidebar-tags-link"><span class="iconfont-archer">&#xe610;</span>Tag</span>
+        </div>
+    </div>
+    <div class="sidebar-content sidebar-content-show-archive">
+          <div class="sidebar-archive">
+    <!-- 在ejs中将archive按照时间排序 -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="total-archive"> Total : 10 </div>
+    
+    <div class="post-archive">
+    
+    
+    
+    
+    <div class="archive-year"> 2019 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/25</span><a class="archive-post-title" href= "/2019/05/25/250519/" >Tensorflow Serving Source Code Walkthrough</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2018 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">07/28</span><a class="archive-post-title" href= "/2018/07/28/ELMo_note/" >Note - Deep contextualized word representations</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/29</span><a class="archive-post-title" href= "/2018/05/29/WSTA_L22_machine_translation_phrase/" >WSTA 22 - MACHINE TRANSLATION</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/29</span><a class="archive-post-title" href= "/2018/05/29/WSTA_L20_IR_EVAL_L2R/" >WSTA 20 - EVALUATION AND RE-RANKING</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">05/29</span><a class="archive-post-title" href= "/2018/05/29/WSTA_L21_machine_translation_word/" >WSTA 21 - MACHINE TRANSLATION WORD BASED MODELS</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">01/19</span><a class="archive-post-title" href= "/2018/01/19/190118/" >Lecture Notes for Reinforcement Learning (MDP)</a>
+        </li>
+    
+    
+    
+    
+    
+        </ul>
+    
+    <div class="archive-year"> 2017 </div>
+    <ul class="year-list">
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">12/19</span><a class="archive-post-title" href= "/2017/12/19/291217/" >An Overview inside Distributed Tensorflow Workflow</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/25</span><a class="archive-post-title" href= "/2017/09/25/250917/" >Stochastic evolutionary game dynamics</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">09/17</span><a class="archive-post-title" href= "/2017/09/17/290917/" >TensorFlow Agents：基于TensorFlow的高效批处理增强学习</a>
+        </li>
+    
+    
+        <li class="archive-post-item">
+            <span class="archive-post-date">08/16</span><a class="archive-post-title" href= "/2017/08/16/160817/" >Social-ecological system in multi-agent environment through deep reinforcement learning</a>
+        </li>
+    
+    </div>
+  </div>
+        <div class="sidebar-tags">
+    <div class="sidebar-tags-name">
+    
+        <span class="sidebar-tag-name"><a href= "#">reinforcement learning</a></span>
+    
+        <span class="sidebar-tag-name"><a href= "#">NLP</a></span>
+    
+    </div>
+    <div class="tag-load-fail" style="display: none; color: #ccc; font-size: 0.6rem;">
+    缺失模块。<br/>
+    1、请确保node版本大于6.2<br/>
+    2、在博客根目录（注意不是archer根目录）执行以下命令：<br/>
+    <span style="color: #f75357; font-size: 1rem; line-height: 2rem;">npm i hexo-generator-json-content --save</span><br/>
+    3、在根目录_config.yml里添加配置：
+    <pre style="color: #787878; font-size: 0.6rem;">
+jsonContent:
+  meta: false
+  pages: false
+  posts:
+    title: true
+    date: true
+    path: true
+    text: false
+    raw: false
+    content: false
+    slug: false
+    updated: false
+    comments: false
+    link: false
+    permalink: false
+    excerpt: false
+    categories: false
+    tags: true</pre>
+    </div> 
+    <div class="sidebar-tag-list"></div>
+</div>
+    </div>
+</div> 
+    <script>
+    var jsInfo = {
+        root: '/'
+    }
+</script>
+    <!-- 不蒜子  -->
+    
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+    <!-- CNZZ统计  -->
+    
+    </div>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+</body>
+</html>
+
+
